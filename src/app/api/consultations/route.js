@@ -11,6 +11,7 @@ export async function GET(request) {
     const patientId = searchParams.get("patient_id");
     const consultId = searchParams.get("id");
     const status = searchParams.get("status");
+    const role = searchParams.get("role"); // "doctor" or "patient"
 
     try {
         let query = supabase
@@ -22,9 +23,23 @@ export async function GET(request) {
             `)
             .order("created_at", { ascending: false });
 
+        // Enforce data privacy based on role
+        if (role === "patient" && patientId) {
+            // Patients ALWAYS only see their own data
+            query = query.eq("patient_id", patientId);
+        } else if (role === "doctor") {
+            // Doctors ONLY see data explicitly sent to a doctor (private diary entries have doctor_id = null)
+            query = query.not("doctor_id", "is", null);
+            if (doctorId) query = query.eq("doctor_id", doctorId);
+        } else if (patientId) {
+            // Fallback: filter by patient_id for backward compat
+            query = query.eq("patient_id", patientId);
+        } else if (doctorId) {
+            query = query.not("doctor_id", "is", null);
+            query = query.eq("doctor_id", doctorId);
+        }
+
         if (consultId) query = query.eq("id", consultId);
-        if (doctorId) query = query.eq("doctor_id", doctorId);
-        if (patientId) query = query.eq("patient_id", patientId);
         if (status) query = query.eq("status", status);
 
         const { data, error } = await query.limit(50);

@@ -29,7 +29,7 @@ export default function ClinicianPortal() {
     const fetchData = useCallback(async () => {
         if (!doctorUser?.id) return;
         try {
-            const res = await fetch(`/api/consultations?doctor_id=${doctorUser.id}`);
+            const res = await fetch(`/api/consultations?doctor_id=${doctorUser.id}&role=doctor`);
             const data = await res.json();
             if (data.success) setConsultations(data.consultations);
         } catch (err) {

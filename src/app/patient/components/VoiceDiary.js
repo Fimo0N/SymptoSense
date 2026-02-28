@@ -158,20 +158,10 @@ export default function VoiceDiary({ onNewEntry }) {
                 if (consultData.success) {
                     console.log("[VoiceDiary] Consultation sent to doctor!");
                 }
-            }
-
-            // Also save as diary entry
-            onNewEntry?.(entry);
-
-            // Sync to shared store
-            try {
-                await fetch("/api/diary-entries", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ entry, patientId: userId }),
-                });
-            } catch (err) {
-                console.error("Sync failed:", err);
+                // NOTE: Do NOT save to diary when sending to doctor — it's a consultation, not a private diary entry
+            } else {
+                // Save as private diary entry only
+                onNewEntry?.(entry);
             }
             // Run voice analysis
             try {

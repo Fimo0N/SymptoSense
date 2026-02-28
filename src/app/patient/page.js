@@ -20,35 +20,39 @@ export default function PatientPortal() {
         });
     }, []);
 
-    // Load saved entries from shared store on mount
-    useEffect(() => {
-        async function loadEntries() {
-            try {
-                const params = user ? `?patient_id=${user.id}` : "";
-                const res = await fetch(`/api/diary-entries${params}`);
-                const data = await res.json();
-                if (data.success && data.entries?.length > 0) {
-                    setEntries(data.entries);
-                }
-            } catch (err) {
-                console.error("Failed to load entries:", err);
+    // Load saved entries from shared store
+    const loadEntries = useCallback(async () => {
+        if (!user) return;
+        try {
+            const res = await fetch(`/api/diary-entries?patient_id=${user.id}`);
+            const data = await res.json();
+            if (data.success) {
+                setEntries(data.entries || []);
             }
+        } catch (err) {
+            console.error("Failed to load entries:", err);
         }
-        loadEntries();
     }, [user]);
 
+    useEffect(() => {
+        loadEntries();
+    }, [loadEntries]);
+
     const handleNewEntry = useCallback(async (entry) => {
-        setEntries((prev) => [entry, ...prev]);
         try {
             await fetch("/api/diary-entries", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ entry, patientId: user?.id }),
             });
+            // Re-fetch from server to avoid duplicates
+            await loadEntries();
         } catch (err) {
             console.error("Failed to sync entry:", err);
+            // Fallback: add locally if server fails
+            setEntries((prev) => [entry, ...prev]);
         }
-    }, [user]);
+    }, [user, loadEntries]);
 
     const insights = useMemo(() => {
         if (entries.length === 0) return [];

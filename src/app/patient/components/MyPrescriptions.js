@@ -15,7 +15,7 @@ export default function MyPrescriptions() {
             if (!userData?.user?.id) { setLoading(false); return; }
 
             try {
-                const res = await fetch(`/api/consultations?patient_id=${userData.user.id}`);
+                const res = await fetch(`/api/consultations?patient_id=${userData.user.id}&role=patient`);
                 const data = await res.json();
                 if (data.success) setConsultations(data.consultations);
             } catch (err) {
