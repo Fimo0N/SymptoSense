@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Navigation from "../components/Navigation";
 import VoiceDiary from "./components/VoiceDiary";
 import DiaryHistory from "./components/DiaryHistory";
-import InsightsPanel from "./components/InsightsPanel";
 import MyPrescriptions from "./components/MyPrescriptions";
-import { generateSuggestionsDemo } from "@/lib/azureServices";
 import { supabase } from "@/lib/supabase";
 
 export default function PatientPortal() {
@@ -54,11 +52,7 @@ export default function PatientPortal() {
         }
     }, [user, loadEntries]);
 
-    const insights = useMemo(() => {
-        if (entries.length === 0) return [];
-        const generated = generateSuggestionsDemo(entries);
-        return generated.slice(0, 4);
-    }, [entries]);
+
 
     const entryCount = entries.length;
     const avgSentiment = entries.length > 0
@@ -101,7 +95,6 @@ export default function PatientPortal() {
                 <div className="grid-2">
                     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                         <VoiceDiary onNewEntry={handleNewEntry} />
-                        <InsightsPanel insights={insights} />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                         <MyPrescriptions />
